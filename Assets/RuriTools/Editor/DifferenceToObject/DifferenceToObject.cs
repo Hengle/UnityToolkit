@@ -163,7 +163,7 @@ namespace RuriTools
                 List<string> childTreeB = GetObjectTree(bTransform);
                 var sameChild = childTreeB.Intersect(childTreeA).ToArray();
             
-				DrawDiffNode(aTransform, bTransform, sameChild);
+				CalcAllDiffNode(aTransform, bTransform, sameChild);
             }
 
 			Repaint();
@@ -202,7 +202,7 @@ namespace RuriTools
                 List<string> childTreeB = GetObjectTree(bTransform);
                 var sameChild = childTreeB.Intersect(childTreeA).ToArray();
               
-				DrawDiffNode(aTransform, bTransform, sameChild);
+				CalcAllDiffNode(aTransform, bTransform, sameChild);
 
                 GUIUtility.ExitGUI();
 			}
@@ -211,41 +211,13 @@ namespace RuriTools
 
             if (GUI.Button(GetRect(EditorGUIUtility.singleLineHeight * 1.5f), "Apply Differences to Left Object"))///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             {
-				// 打包函数1
+				// 缺失对象树预处理
                 Transform aTransform = (obj1 as GameObject).transform;
                 Transform bTransform = (obj2 as GameObject).transform;
+                CreateDiffObjectTree(aTransform, bTransform,out var childTreeA,out var childTreeB);
 
-                List<string> childTreeA = GetObjectTree(aTransform);
-                List<string> childTreeB = GetObjectTree(bTransform);
-
-                var diffPathTree = childTreeB.Except(childTreeA).ToList();
-
-                Undo.RecordObject(aTransform, "Add new objects");
-
-                foreach (var path in diffPathTree)
-                {
-                    bool isSubPath = diffPathTree.Any(p => path.StartsWith(p + "/"));
-                    if (!isSubPath)
-                    {
-                        Debug.Log(path);
-                        Transform diffTransform = bTransform.Find(path);
-                        Transform newTransform = Instantiate(diffTransform, aTransform);
-                        newTransform.name = diffTransform.name;
-
-                        int diffIndex = diffTransform.GetSiblingIndex();
-                        newTransform.SetSiblingIndex(diffIndex);
-
-                        string parentPath = path.Contains("/") ? path.Substring(0, path.LastIndexOf('/')) : path;
-                        newTransform.parent = aTransform.Find(parentPath);
-
-                        // Register the changes made to the transform as undoable
-                        Undo.RegisterCreatedObjectUndo(newTransform.gameObject, "Add new object");
-                    }
-                }
-				// 打包函数1结束
-				var sameChild = childTreeB.Intersect(childTreeA).ToArray();
-
-				DrawDiffNode(aTransform, bTransform, sameChild, true);
+                var sameChild = childTreeB.Intersect(childTreeA).ToArray();
+                CalcAllDiffNode(aTransform, bTransform, sameChild, true);
 
                 if (rootDiffNodes != null && rootDiffNodes.Length > 0 && rootDiffNodes[0].serializedObject1 != null)
                 {
@@ -263,114 +235,7 @@ namespace RuriTools
 						// Draw diffed objects' diffs
 						if (rootDiffNodes[i].hasAnyDiffs)
 						{
-							Action<DiffNode> func1 = null;
-							func1 = (DiffNode node) =>
-							{
-								// 包装函数开始1
-
-								if (node.type == DiffType.DifferentChildren)
-								{
-									bool isRootNode = node is RootDiffNode;
-									if (!isRootNode)
-									{
-										// 包装函数开始2
-										if (!node.prop1.serializedObject.targetObject || !node.prop2.serializedObject.targetObject)
-											return; // Todo 处理同级对象 注意Guid
-
-										Debug.Log($"找到子差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
-                                        // 把修改过的对象赋值给prefab
-                                        object obj2Value = node.prop2.CopyValue();
-										if (node.prop1.CanPasteValue(obj2Value, true))
-										{
-											node.prop1.PasteValue(obj2Value, true);
-										}
-										// 包装函数结束2
-									}
-
-									if (isRootNode)
-									{
-										DiffNode[] children = node.children;
-										for (int j = 0; j < children.Length; j++)
-										{
-											try
-											{
-                                                func1(children[j]);
-											}
-											catch (InvalidOperationException)
-											{
-												// A DiffNode's SerializedProperty became invalid (e.g. if it was an array element, that array element is now deleted)
-												// Remove the problematic DiffNode and repaint the window to reflect the changes
-												if (children.Length == 1)
-												{
-													node.type = DiffType.Same;
-													node.children = null;
-												}
-												else
-												{
-													RemoveArrayElement(ref children, j);
-
-													DiffType? diffType = GetCombinedDiffType(children);
-													if (diffType.HasValue && diffType.Value != DiffType.DifferentChildren)
-													{
-														// All children have the same diff type, transfer that diff type to this parent diff node
-														node.type = diffType.Value;
-														node.children = null;
-													}
-												}
-
-												EditorApplication.delayCall += Repaint;
-												GUIUtility.ExitGUI();
-											}
-										}
-									}
-								}
-								else if (node.type == DiffType.Obj2Extra)
-								{
-									//Debug.Log($"obj2额外{(node as RootDiffNode).diffObject1} obj2{(node as RootDiffNode).diffObject2}");
-									Debug.Log($"找到额外对象差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
-                                    // 包装函数开始2
-                                    if (!node.prop1.serializedObject.targetObject || !node.prop2.serializedObject.targetObject)
-                                        return; // Todo 处理同级对象 注意Guid
-
-                                    // 把修改过的对象赋值给prefab
-                                    object obj2Value = node.prop2.CopyValue();
-                                    if (node.prop1.CanPasteValue(obj2Value, true))
-                                    {
-                                        node.prop1.PasteValue(obj2Value, true);
-                                    }
-                                }
-								else if (node.type == DiffType.Different)
-								{
-									Debug.Log($"找到差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
-                                    // 包装函数开始2
-                                    if (!node.prop1.serializedObject.targetObject || !node.prop2.serializedObject.targetObject)
-										return; // Todo 处理同级对象 注意Guid
-
-                                    object obj2Value = node.prop2.CopyValue();
-									var gameobject2 = obj2Value as Transform;
-									if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && gameobject2) // 如果是引用 那么用层级树来获取A身上的相同路径对象
-                                    {
-										string gameobject2Path = GetParentTree(gameobject2.transform);
-										var obj1Value = (node.prop1.CopyValue() as Transform).root;
-										var tempObj = obj1Value.Find(gameobject2Path);
-                                        if (node.prop1.CanPasteValue(tempObj, true))
-                                        {
-                                            node.prop1.PasteValue(tempObj, true);
-                                        }
-                                    }
-									else
-                                    {
-                                        if (node.prop1.CanPasteValue(obj2Value, true))
-                                        {
-                                            node.prop1.PasteValue(obj2Value, true);
-                                        }
-                                    }
-                                    // 包装函数结束2
-                                }
-
-                                // 包装函数结束1
-                            };
-							func1(rootDiffNodes[i]);
+                            ReplaceDiffNode(rootDiffNodes[i]);
                         }
                     }
                 }
@@ -516,9 +381,125 @@ namespace RuriTools
 			scrollViewRect.height += DIFF_RESULTS_EDGE_PADDING;
 			GUI.EndScrollView();
 		}
+		private void CreateDiffObjectTree(Transform aTransform , Transform bTransform ,out List<string> childTreeA, out List<string> childTreeB)
+		{
+            childTreeA = GetObjectTree(aTransform);
+            childTreeB = GetObjectTree(bTransform);
 
-		// 获取Transform组件的层级路径
-		private List<string> GetObjectTree(Transform rootTransform, bool includeInactive = true)
+            var diffPathTree = childTreeB.Except(childTreeA).ToList();
+
+            Undo.RecordObject(aTransform, "Add new objects");
+
+            foreach (var path in diffPathTree)
+            {
+                bool isSubPath = diffPathTree.Any(p => path.StartsWith(p + "/"));
+                if (!isSubPath)
+                {
+                    Transform diffTransform = bTransform.Find(path);
+                    Transform newTransform = Instantiate(diffTransform, aTransform);
+                    newTransform.name = diffTransform.name;
+
+                    int diffIndex = diffTransform.GetSiblingIndex();
+                    newTransform.SetSiblingIndex(diffIndex);
+
+                    string parentPath = path.Contains("/") ? path.Substring(0, path.LastIndexOf('/')) : path;
+                    newTransform.parent = aTransform.Find(parentPath);
+
+                    // 将对变换所做的更改注册为可撤销的
+                    Undo.RegisterCreatedObjectUndo(newTransform.gameObject, "Add new object");
+                }
+            }
+        }
+		private void ReplaceDiffNode(DiffNode node)
+        {
+            if (node.type == DiffType.DifferentChildren)
+            {
+                bool isRootNode = node is RootDiffNode;
+                if (!isRootNode)
+                {
+					Debug.Log($"找到子差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
+					ReplaceDiffNodeValue(node, null);
+                }
+
+                if (isRootNode)
+                {
+                    DiffNode[] children = node.children;
+                    for (int j = 0; j < children.Length; j++)
+                    {
+                        try
+                        {
+                            ReplaceDiffNode(children[j]);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // 一个 DiffNode 的 SerializedProperty 已经无效（例如，如果它是一个数组元素，那么该数组元素现在已被删除）
+                            // 删除有问题的 DiffNode 并重新绘制窗口以反映这些更改
+                            if (children.Length == 1)
+                            {
+                                node.type = DiffType.Same;
+                                node.children = null;
+                            }
+                            else
+                            {
+                                RemoveArrayElement(ref children, j);
+
+                                DiffType? diffType = GetCombinedDiffType(children);
+                                if (diffType.HasValue && diffType.Value != DiffType.DifferentChildren)
+                                {
+									// 所有的子节点都有相同的差异类型，将该差异类型传递给该父差异节点
+                                    node.type = diffType.Value;
+                                    node.children = null;
+                                }
+                            }
+
+                            EditorApplication.delayCall += Repaint;
+                            GUIUtility.ExitGUI();
+                        }
+                    }
+                }
+            }
+            else if (node.type == DiffType.Obj2Extra)
+            {
+                Debug.Log($"找到额外对象差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
+                ReplaceDiffNodeValue(node, null);
+            }
+            else if (node.type == DiffType.Different)
+            {
+                Debug.Log($"找到差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
+                // 包装函数开始2
+                if (!node.prop1.serializedObject.targetObject || !node.prop2.serializedObject.targetObject)
+                    return; // Todo 处理同级对象 注意Guid
+
+                object obj2Value = node.prop2.CopyValue();
+                var gameobject2 = obj2Value as Transform;
+                if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && gameobject2) // 如果是引用 那么用层级树来获取A身上的相同路径对象
+                {
+                    string gameobject2Path = GetParentTree(gameobject2.transform);
+                    var obj1Value = (node.prop1.CopyValue() as Transform).root;
+                    var tempObj = obj1Value.Find(gameobject2Path);
+                    ReplaceDiffNodeValue(node, tempObj);
+                }
+                else
+                {
+                    ReplaceDiffNodeValue(node, null);
+                }
+            }
+        }
+        private void ReplaceDiffNodeValue(DiffNode node, object value)
+		{
+            if (!node.prop1.serializedObject.targetObject || !node.prop2.serializedObject.targetObject)
+                return; // Todo 处理同级对象 注意Guid
+
+            // 把修改过的对象赋值给prefab
+            object objValue = value == null ? node.prop2.CopyValue() : value;
+            if (node.prop1.CanPasteValue(objValue, true))
+            {
+                node.prop1.PasteValue(objValue, true);
+            }
+        }
+
+        // 获取Transform组件的层级路径
+        private List<string> GetObjectTree(Transform rootTransform, bool includeInactive = true)
         {
             Transform[] objChildTree = rootTransform.GetComponentsInChildren<Transform>(includeInactive);
             List<string> childTree = new List<string>();
@@ -552,7 +533,7 @@ namespace RuriTools
             }
             return parentPath;
         }
-        private void DrawDiffNode(Transform aTransform, Transform bTransform, string[] sameChild,bool forceIncludeChild = false)
+        private void CalcAllDiffNode(Transform aTransform, Transform bTransform, string[] sameChild,bool forceIncludeChild = false)
 		{
             List<RootDiffNode> listDiff = new List<RootDiffNode>();
             DiffExtraComponent[] listComp = new DiffExtraComponent[0];
