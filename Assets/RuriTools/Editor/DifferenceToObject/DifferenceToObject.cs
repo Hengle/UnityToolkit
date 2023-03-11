@@ -231,28 +231,7 @@ namespace RuriTools
                 var sameChild = b.Intersect(a).ToArray();
                 CalcAllDiffNode(aTransform, bTransform, sameChild, true);
 
-                if (rootDiffNodes != null && rootDiffNodes.Length > 0 && rootDiffNodes[0].serializedObject1 != null)
-                {
-                    for (int i = 0; i < rootDiffNodes.Length; i++)
-                    {
-                        if (rootDiffNodes[i].serializedObject1.targetObject)
-                            rootDiffNodes[i].serializedObject1.Update();
-                        if (rootDiffNodes[i].serializedObject2.targetObject)
-                            rootDiffNodes[i].serializedObject2.Update();
-                    }
-
-                    // Draw diff results
-                    for (int i = 0; i < rootDiffNodes.Length; i++)
-					{
-						// Draw diffed objects' diffs
-						if (rootDiffNodes[i].hasAnyDiffs)
-						{
-                            ReplaceDiffNode(rootDiffNodes[i]);
-                        }
-                    }
-                }
-
-                // Draw extra components that don't exist on both of the diffed GameObjects
+                // 先修复缺失组件 不然后面找不到组件之间的错误引用
                 if (diffExtraComponents != null && diffExtraComponents.Length > 0)
                 {
                     for (int i = 0; i < diffExtraComponents.Length; i++)
@@ -272,6 +251,27 @@ namespace RuriTools
                             }
                         }
                         Debug.Log($"找到差异 组件 : {diffExtraComponents[i]}");
+                    }
+                }
+
+                if (rootDiffNodes != null && rootDiffNodes.Length > 0 && rootDiffNodes[0].serializedObject1 != null)
+                {
+                    for (int i = 0; i < rootDiffNodes.Length; i++)
+                    {
+                        if (rootDiffNodes[i].serializedObject1.targetObject)
+                            rootDiffNodes[i].serializedObject1.Update();
+                        if (rootDiffNodes[i].serializedObject2.targetObject)
+                            rootDiffNodes[i].serializedObject2.Update();
+                    }
+
+                    // Draw diff results
+                    for (int i = 0; i < rootDiffNodes.Length; i++)
+					{
+						// Draw diffed objects' diffs
+						if (rootDiffNodes[i].hasAnyDiffs)
+						{
+                            ReplaceDiffNode(rootDiffNodes[i]);
+                        }
                     }
                 }
 
@@ -520,14 +520,20 @@ namespace RuriTools
                 if (!node.prop1.serializedObject.targetObject || !node.prop2.serializedObject.targetObject)
                     return; // Todo 处理同级对象 注意Guid
 
-                object obj2Value = node.prop2.CopyValue();
-                var gameobject2 = obj2Value as Transform;
-                if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && gameobject2) // 如果是引用 那么用层级树来获取A身上的相同路径对象
+                object obj2Value = node.prop2.CopyValue(); 
+				if (obj2Value is GameObject || obj2Value is Component)
                 {
-                    string gameobject2Path = GetParentTree(gameobject2.transform);
-					var obj1Root = (node.prop1.serializedObject.targetObject as Component).transform.root;
-                    var tempObj = obj1Root.Find(gameobject2Path);
-                    ReplaceDiffNodeValue(node, tempObj);
+                    // 如果 obj2Value 是 GameObject 或 Component，则进行层级树查找 而不是使用旧对象的引用
+					bool isObject = (obj2Value as Component) == null;
+                    Object component2 = isObject ? obj2Value as GameObject : obj2Value as Component;
+
+                    if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && component2)
+                    {
+                        string gameobject2Path = GetParentTree(isObject ? (obj2Value as GameObject).transform : (obj2Value as Component).transform);
+                        var obj1Root = (node.prop1.serializedObject.targetObject as Component).transform.root;
+                        var tempObj = obj1Root.Find(gameobject2Path);
+                        ReplaceDiffNodeValue(node, tempObj);
+                    }
                 }
                 else
                 {
