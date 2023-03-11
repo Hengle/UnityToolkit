@@ -209,14 +209,26 @@ namespace RuriTools
 			GUI.enabled = true;
             includeChild = GUI.Toggle(GetRect(EditorGUIUtility.singleLineHeight * 1.5f), includeChild, "包含子对象(极慢) Very slow!");
 
+			GUI.enabled = obj1 && obj2 && obj1 != obj2;
             if (GUI.Button(GetRect(EditorGUIUtility.singleLineHeight * 1.5f), "Apply Differences to Left Object"))///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             {
-				// 缺失对象树预处理
+                // 缺失对象树预处理
                 Transform aTransform = (obj1 as GameObject).transform;
                 Transform bTransform = (obj2 as GameObject).transform;
-                CreateDiffObjectTree(aTransform, bTransform,out var childTreeA,out var childTreeB);
+                CreateDiffObjectTree(aTransform, bTransform);
 
-                var sameChild = childTreeB.Intersect(childTreeA).ToArray();
+				var newBTransform = Instantiate(bTransform);
+				newBTransform.name = bTransform.name;
+                newBTransform.SetSiblingIndex(bTransform.GetSiblingIndex());
+
+                DestroyImmediate(bTransform.gameObject);
+				
+				bTransform = newBTransform;
+                obj2 = newBTransform.gameObject;
+
+				var a = GetObjectTree(aTransform);
+				var b = GetObjectTree(bTransform);
+                var sameChild = b.Intersect(a).ToArray();
                 CalcAllDiffNode(aTransform, bTransform, sameChild, true);
 
                 if (rootDiffNodes != null && rootDiffNodes.Length > 0 && rootDiffNodes[0].serializedObject1 != null)
@@ -275,6 +287,7 @@ namespace RuriTools
                 RefreshDiff();
                 GUIUtility.ExitGUI();
             }//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            GUI.enabled = true;
 
             if ( rootDiffNodes != null && rootDiffNodes.Length > 0 && rootDiffNodes[0].serializedObject1 != null )
 			{
@@ -381,10 +394,11 @@ namespace RuriTools
 			scrollViewRect.height += DIFF_RESULTS_EDGE_PADDING;
 			GUI.EndScrollView();
 		}
-		private void CreateDiffObjectTree(Transform aTransform , Transform bTransform ,out List<string> childTreeA, out List<string> childTreeB)
+		private void CreateDiffObjectTree(Transform aTransform , Transform bTransform)
 		{
-            childTreeA = GetObjectTree(aTransform);
-            childTreeB = GetObjectTree(bTransform);
+            // 这里是先创建差异层 然后在下面生成A对象缺失的子对象
+            List<string> childTreeA = GetObjectTree(aTransform);
+            List<string> childTreeB = GetObjectTree(bTransform);
 
             var diffPathTree = childTreeB.Except(childTreeA).ToList();
 
@@ -392,10 +406,46 @@ namespace RuriTools
 
             foreach (var path in diffPathTree)
             {
+                /* 层级顺序创建对象 但实际上意义不大 因为缺失的引用还是会直接复制过来
+                string[] names = path.Split('/');
+				GameObject parent = aTransform.gameObject;
+                foreach (string name in names)
+                {
+                    GameObject child = parent.transform.Find(name)?.gameObject;
+
+                    if (child == null)
+                    {
+                        Transform diffTransform = bTransform.Find(path);
+                        child = new GameObject(name);
+                        child.transform.SetParent(parent.transform);
+                        child.name = diffTransform.name;
+
+                        int diffIndex = diffTransform.GetSiblingIndex();
+                        child.transform.SetSiblingIndex(diffIndex);
+
+						// 将对变换所做的更改注册为可撤销的
+                        Undo.RegisterCreatedObjectUndo(child.gameObject, "Add new object");
+                    }
+
+                    parent = child;
+                }*/
+				//直接从b对象复制目录 缺点和上面一样 会导致对象引用到复制前对象上
                 bool isSubPath = diffPathTree.Any(p => path.StartsWith(p + "/"));
                 if (!isSubPath)
                 {
                     Transform diffTransform = bTransform.Find(path);
+                    //*****************非正常手段************************
+                    // 如果使用 Instantiate 会导致对象参数引用到旧的对象上 所以必须使用这个非公开Api
+                    // 但这还是有一个问题 如果创建的时候其他节点还没生成的话 还是会用旧的对象引用
+
+                    /*
+                    Selection.activeGameObject = diffTransform.gameObject;
+                    Unsupported.DuplicateGameObjectsUsingPasteboard();
+					Transform newTransform = Selection.activeTransform;
+                    newTransform.parent = aTransform;
+					*/
+
+                    //***************************************************
                     Transform newTransform = Instantiate(diffTransform, aTransform);
                     newTransform.name = diffTransform.name;
 
@@ -475,8 +525,8 @@ namespace RuriTools
                 if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && gameobject2) // 如果是引用 那么用层级树来获取A身上的相同路径对象
                 {
                     string gameobject2Path = GetParentTree(gameobject2.transform);
-                    var obj1Value = (node.prop1.CopyValue() as Transform).root;
-                    var tempObj = obj1Value.Find(gameobject2Path);
+					var obj1Root = (node.prop1.serializedObject.targetObject as Component).transform.root;
+                    var tempObj = obj1Root.Find(gameobject2Path);
                     ReplaceDiffNodeValue(node, tempObj);
                 }
                 else
