@@ -253,6 +253,7 @@ namespace RuriTools
                         Debug.Log($"找到差异 组件 : {diffExtraComponents[i]}");
                     }
                 }
+                CalcAllDiffNode(aTransform, bTransform, sameChild, true);
 
                 if (rootDiffNodes != null && rootDiffNodes.Length > 0 && rootDiffNodes[0].serializedObject1 != null)
                 {
@@ -524,12 +525,12 @@ namespace RuriTools
 				if (obj2Value is GameObject || obj2Value is Component)
                 {
                     // 如果 obj2Value 是 GameObject 或 Component，则进行层级树查找 而不是使用旧对象的引用
-					bool isObject = (obj2Value as Component) == null;
-                    Object component2 = isObject ? obj2Value as GameObject : obj2Value as Component;
+					var object2 = obj2Value as Component;
+					var componet2 = obj2Value as GameObject;
 
-                    if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && component2)
+					if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && (componet2 || object2))
                     {
-                        string gameobject2Path = GetParentTree(isObject ? (obj2Value as GameObject).transform : (obj2Value as Component).transform);
+                        string gameobject2Path = GetParentTree(object2 ? object2.transform : componet2.transform);
                         var obj1Root = (node.prop1.serializedObject.targetObject as Component).transform.root;
                         var tempObj = obj1Root.Find(gameobject2Path);
                         ReplaceDiffNodeValue(node, tempObj);
