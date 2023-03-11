@@ -264,7 +264,6 @@ namespace RuriTools
                     CalcAllDiffNode(aTransform, bTransform, sameChild, true);
                 }
 
-
                 if (rootDiffNodes != null && rootDiffNodes.Length > 0 && rootDiffNodes[0].serializedObject1 != null)
                 {
                     for (int i = 0; i < rootDiffNodes.Length; i++)
@@ -579,7 +578,7 @@ namespace RuriTools
                 string path = treeTransform.name;
                 Transform parentTransform = treeTransform.parent;
 
-                while (parentTransform != rootTransform && parentTransform != null)
+                while (parentTransform != null && parentTransform != rootTransform)
                 {
                     path = parentTransform.name + "/" + path;
                     parentTransform = parentTransform.parent;
@@ -593,7 +592,7 @@ namespace RuriTools
             string parentPath = childTransform.name;
             Transform parentTransform = childTransform.parent;
 
-            while (parentTransform != childTransform.root)
+			while (parentTransform != null && parentTransform != childTransform.root)
             {
                 parentPath = parentTransform.name + "/" + parentPath;
                 parentTransform = parentTransform.parent;
