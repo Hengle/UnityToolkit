@@ -252,8 +252,18 @@ namespace RuriTools
                         }
                         Debug.Log($"找到差异 组件 : {diffExtraComponents[i]}");
                     }
+                    newBTransform = Instantiate(bTransform);
+                    newBTransform.name = bTransform.name;
+                    newBTransform.SetSiblingIndex(bTransform.GetSiblingIndex());
+
+                    DestroyImmediate(bTransform.gameObject);
+
+                    bTransform = newBTransform;
+                    obj2 = newBTransform.gameObject;
+
+                    CalcAllDiffNode(aTransform, bTransform, sameChild, true);
                 }
-                CalcAllDiffNode(aTransform, bTransform, sameChild, true);
+
 
                 if (rootDiffNodes != null && rootDiffNodes.Length > 0 && rootDiffNodes[0].serializedObject1 != null)
                 {
