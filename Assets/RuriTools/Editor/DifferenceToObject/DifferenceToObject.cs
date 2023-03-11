@@ -593,6 +593,7 @@ namespace RuriTools
         }
         private string GetParentTree(Transform childTransform)
         {
+            if (childTransform == childTransform.root) return "";
             string parentPath = childTransform.name;
             Transform parentTransform = childTransform.parent;
 
