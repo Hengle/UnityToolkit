@@ -542,6 +542,8 @@ namespace RuriTools
                         string gameobject2Path = GetParentTree(object2 ? object2.transform : componet2.transform);
                         var obj1Root = (node.prop1.serializedObject.targetObject as Component).transform.root;
                         var tempObj = obj1Root.Find(gameobject2Path);
+						if (!tempObj)
+							tempObj = obj1Root;
                         ReplaceDiffNodeValue(node, tempObj);
                     }
                 }
