@@ -480,7 +480,7 @@ namespace RuriTools
                 if (!isRootNode)
                 {
                     Debug.Log($"找到子差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
-                    ReplaceDiffNodeValue(node, null);
+                    ReplaceDiffNodeValue(node);
                 }
 
                 if (isRootNode)
@@ -520,42 +520,47 @@ namespace RuriTools
                     }
                 }
             }
-            else if (node.type == DiffType.Obj2Extra)
-            {
-                Debug.Log($"找到额外对象差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
-                ReplaceDiffNodeValue(node, null);
-            }
-            else if (node.type == DiffType.Different)
-            {
-                Debug.Log($"找到差异 对象1: {node.prop1.CopyValue()} 对象2: {node.prop2.CopyValue()}");
-                // 包装函数开始2
+            else if(node.type == DiffType.Different)
+{
+                Debug.Log($"找到差异：对象1：{node.prop1.CopyValue()}，对象2：{node.prop2.CopyValue()}");
                 if (!node.prop1.serializedObject.targetObject || !node.prop2.serializedObject.targetObject)
-                    return; // Todo 处理同级对象 注意Guid
+                    return; // TODO: 处理同级对象，注意 GUID
 
-                object obj2Value = node.prop2.CopyValue();
-                if (obj2Value is GameObject || obj2Value is Component)
+                object value2 = node.prop2.CopyValue();
+                if (value2 is GameObject || value2 is Component)
                 {
-                    // 如果 obj2Value 是 GameObject 或 Component，则进行层级树查找 而不是使用旧对象的引用
-                    var object2 = obj2Value as Component;
-                    var componet2 = obj2Value as GameObject;
-
-                    if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && (componet2 || object2))
+                    // 如果 value2 是 GameObject 或 Component，则进行层级树查找，而不是使用旧对象的引用
+                    var component2 = value2 as Component;
+                    var gameObj2 = value2 as GameObject;
+                    Transform transform2 = component2 ? component2.transform : gameObj2.transform;
+                    // 如果值的根对象不在对象2里面 那就取消查找
+                    var targetObject2 = node.prop2.serializedObject.targetObject as Component;
+                    var serializedObject2 = node.prop2.serializedObject.targetObject as GameObject;
+                    Transform serializedObjectTransform2 = targetObject2 ? targetObject2.transform : serializedObject2.transform;
+                    if (transform2.root == serializedObjectTransform2.transform.root)
                     {
-                        string gameobject2Path = GetParentTree(object2 ? object2.transform : componet2.transform);
-                        var obj1Root = (node.prop1.serializedObject.targetObject as Component).transform.root;
-                        var tempObj = obj1Root.Find(gameobject2Path);
-                        if (!tempObj)
-                            tempObj = obj1Root;
-                        ReplaceDiffNodeValue(node, tempObj);
+                        if (node.prop2.propertyType == SerializedPropertyType.ObjectReference && (gameObj2 || component2))
+                        {
+                            string path2 = GetParentTree(component2 ? component2.transform : gameObj2.transform);
+                            var root1 = (node.prop1.serializedObject.targetObject as Component).transform.root;
+                            var tempObj = root1.Find(path2);
+                            if (!tempObj) // 如果子类找不到，那就是父类本身
+                                tempObj = root1;
+                            ReplaceDiffNodeValue(node, tempObj);
+                        }
+                    }
+                    else
+                    {
+                        ReplaceDiffNodeValue(node, value2);
                     }
                 }
                 else
                 {
-                    ReplaceDiffNodeValue(node, null);
+                    ReplaceDiffNodeValue(node, value2);
                 }
             }
         }
-        private void ReplaceDiffNodeValue(DiffNode node, object value)
+        private void ReplaceDiffNodeValue(DiffNode node, object value = null)
         {
             if (!node.prop1.serializedObject.targetObject || !node.prop2.serializedObject.targetObject)
                 return; // Todo 处理同级对象 注意Guid
