@@ -1,0 +1,50 @@
+Language														=	言語
+config															=	現在の設定
+SaveConfig														=	設定ファイルの保存
+outputFolder													=	出力パス
+                                                                    
+OpenFileButton													=	保存ファイルパスを開く
+SeleteSaveFileButton											=	保存ファイルパスを選択する
+ModelInfoExporter												=	モデルマテリアルポリゴン情報のエクスポート
+                                                                    
+isEnbale														=	プレビューシステムを使用する
+targetChara														=	プレビューターゲット
+previewLight													=	プレビューライト
+previewCamera													=	プレビューカメラ
+                                                                    
+cameraPositions													=	カメラ録画座標
+cameraPositions.Array.size										=	配列のサイズ
+                                                                    
+cameraOffset													=	カメラオフセット
+cameraOffset.isEnabled											=	オフセットを有効にする
+CameraOffsetRestone												=	初期位置に戻す
+cameraOffset.isHidden											=	オフセットオブジェクトを非表示にする
+cameraOffset.positions											=	カメラオフセット座標
+cameraOffset.positions.Array.size								=	配列のサイズ
+cameraOffset.defaultPositions									=	Hide_初期座標
+cameraOffset.defaultPositions.Array.size						=	配列のサイズ
+                                                                    
+lightOffset														=	ライトオフセット
+lightOffset.isEnabled											=	オフセットを有効にする
+LightOffsetRestone												=	初期回転に戻す
+lightOffset.isHidden											=	オフセットオブジェクトを非表示にする
+lightOffset.transform											=	ライト回転
+                                                                    
+usePhysicalCamera												=	物理カメラを使用する
+focalLength														=	物理カメラの焦点距離
+useOrthographic													=	正射影カメラを使用する
+outputAlpha														=	アルファチャンネルの出力
+useBackgroundColor												=	背景色を使用する
+backgroundColor													=	背景色
+outputWidth														=	出力の幅
+outputHeight													=	出力の高さ
+paddingSec														=	アングル切り替え待機時間
+rotationSec														=	一周回転時間
+screenshotIntervalAngle											=	スクリーンショット間隔角度
+cameraPreviewAngle												=	カメラプレビューアングル
+cameraPreviewAngle.Array.size									=	配列のサイズ
+
+# 错误log
+MissingConfigFile												=	設定ファイルが見つかりません
+MissingPreviewSystem											=	PreviewSystemコンポーネントが見つかりません
+MissingPreviewChara												=	PreviewCharaオブジェクトが見つかりません

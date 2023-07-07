@@ -1,0 +1,50 @@
+Language														=	语言
+config															=	当前配置
+SaveConfig														=	保存配置文件
+outputFolder													=	输出路径
+
+OpenFileButton													=	打开保存文件路径
+SeleteSaveFileButton											=	选择保存文件路径
+ModelInfoExporter												=	导出模型材质多边形数信息
+
+isEnbale														=	使用预览系统
+targetChara														=	预览对象
+previewLight													=	预览灯光
+previewCamera													=	预览相机
+
+cameraPositions													=	相机录制坐标
+cameraPositions.Array.size										=	数组大小
+
+cameraOffset													=	相机偏移
+cameraOffset.isEnabled											=	开启偏移
+CameraOffsetRestone												=	恢复初始位置
+cameraOffset.isHidden											=	隐藏偏移对象
+cameraOffset.positions											=	偏移相机坐标
+cameraOffset.positions.Array.size								=	数组大小
+cameraOffset.defaultPositions									=	Hide_初始坐标
+cameraOffset.defaultPositions.Array.size						=	数组大小
+
+lightOffset														=	光照偏移
+lightOffset.isEnabled											=	开启偏移
+LightOffsetRestone												=	恢复初始旋转
+lightOffset.isHidden											=	隐藏偏移对象
+lightOffset.transform											=	光照旋转
+
+usePhysicalCamera												=	使用物理相机
+focalLength														=	物理相机距离
+useOrthographic													=	使用正交相机
+outputAlpha														=	输出透明度
+useBackgroundColor												=	使用背景色
+backgroundColor													=	背景色
+outputWidth														=	输出宽度
+outputHeight													=	输出高度
+paddingSec														=	角度切换等待时间
+rotationSec														=	旋转一圈时间
+screenshotIntervalAngle											=	截图间隔角度
+cameraPreviewAngle												=	相机预览角度
+cameraPreviewAngle.Array.size									=	数组大小
+
+# 错误log
+MissingConfigFile												=	找不到配置文件
+MissingPreviewSystem											=	找不到PreviewSystem组件
+MissingPreviewChara												=	找不到PreviewChara对象

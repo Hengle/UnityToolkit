@@ -1,0 +1,50 @@
+Language														=	Ngôn ngữ
+config															=	Cấu hình hiện tại
+SaveConfig														=	Lưu cấu hình
+outputFolder													=	Đường dẫn đầu ra
+                                                                    
+OpenFileButton													=	Mở đường dẫn lưu file
+SeleteSaveFileButton											=	Chọn đường dẫn lưu file
+ModelInfoExporter												=	Xuất thông tin số đa giác vật liệu mô hình
+                                                                    
+isEnbale														=	Sử dụng hệ thống xem trước
+targetChara														=	Đối tượng xem trước
+previewLight													=	Ánh sáng xem trước
+previewCamera													=	Máy ảnh xem trước
+                                                                    
+cameraPositions													=	Tọa độ ghi máy ảnh
+cameraPositions.Array.size										=	Kích thước mảng
+                                                                    
+cameraOffset													=	Điều chỉnh máy ảnh
+cameraOffset.isEnabled											=	Bật điều chỉnh
+CameraOffsetRestone												=	Phục hồi vị trí ban đầu
+cameraOffset.isHidden											=	Ẩn đối tượng điều chỉnh
+cameraOffset.positions											=	Tọa độ điều chỉnh máy ảnh
+cameraOffset.positions.Array.size								=	Kích thước mảng
+cameraOffset.defaultPositions									=	Hide_ Vị trí ban đầu
+cameraOffset.defaultPositions.Array.size						=	Kích thước mảng
+                                                                    
+lightOffset														=	Điều chỉnh ánh sáng
+lightOffset.isEnabled											=	Bật điều chỉnh
+LightOffsetRestone												=	Phục hồi xoay ban đầu
+lightOffset.isHidden											=	Ẩn đối tượng điều chỉnh
+lightOffset.transform											=	Xoay ánh sáng
+                                                                    
+usePhysicalCamera												=	Sử dụng máy ảnh vật lý
+focalLength														=	Khoảng cách máy ảnh vật lý
+useOrthographic													=	Sử dụng máy ảnh chữ nhật
+outputAlpha														=	Xuất kênh alpha
+useBackgroundColor												=	Sử dụng màu nền
+backgroundColor													=	Màu nền
+outputWidth														=	Chiều rộng đầu ra
+outputHeight													=	Chiều cao đầu ra
+paddingSec														=	Thời gian chờ chuyển góc
+rotationSec														=	Thời gian quay một vòng
+screenshotIntervalAngle											=	Góc chụp ảnh cách nhau
+cameraPreviewAngle												=	Góc xem trước máy ảnh
+cameraPreviewAngle.Array.size									=	Kích thước mảng
+
+# 错误log
+MissingConfigFile												=	Không tìm thấy tệp cấu hình
+MissingPreviewSystem											=	Không tìm thấy thành phần PreviewSystem
+MissingPreviewChara												=	Không tìm thấy đối tượng PreviewChara

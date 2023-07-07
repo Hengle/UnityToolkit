@@ -1,0 +1,51 @@
+Language														=	Language
+config															=	Current Configuration
+SaveConfig														=	Save Configuration File
+outputFolder													=	Output Path
+                                                                    
+OpenFileButton													=	Open Save File Path
+SeleteSaveFileButton											=	Select Save File Path
+ModelInfoExporter												=	Export Model Material Polygon Count Information
+                                                                    
+isEnbale														=	Use Preview System
+targetChara														=	Preview Object
+previewLight													=	Preview Light
+previewCamera													=	Preview Camera
+                                                                    
+cameraPositions													=	Camera Recording Coordinates
+cameraPositions.Array.size										=	Array Size
+                                                                    
+cameraOffset													=	Camera Offset
+cameraOffset.isEnabled											=	Enable Offset
+CameraOffsetRestone												=	Restore Initial Position
+cameraOffset.isHidden											=	Hide Offset Object
+cameraOffset.positions											=	Offset Camera Coordinates
+cameraOffset.positions.Array.size								=	Array Size
+cameraOffset.defaultPositions									=	Hide_Initial Coordinates
+cameraOffset.defaultPositions.Array.size						=	Array Size
+                                                                    
+lightOffset														=	Light Offset
+lightOffset.isEnabled											=	Enable Offset
+LightOffsetRestone												=	Restore Initial Rotation
+lightOffset.isHidden											=	Hide Offset Object
+lightOffset.transform											=	Light Rotation
+                                                                    
+usePhysicalCamera												=	Use Physical Camera
+focalLength														=	Physical Camera Distance
+useOrthographic													=	Use Orthographic Camera
+outputAlpha														=	Output Transparency
+useBackgroundColor												=	Use Background Color
+backgroundColor													=	Background Color
+outputWidth														=	Output Width
+outputHeight													=	Output Height
+paddingSec														=	Angle Switching Waiting Time
+rotationSec														=	Time to Rotate a Circle
+screenshotIntervalAngle											=	Screenshot Interval Angle
+cameraPreviewAngle												=	Camera Preview Angle
+cameraPreviewAngle.Array.size									=	Array Size
+
+# 错误log
+MissingConfigFile												=	Configuration File Not Found
+MissingPreviewSystem											=	PreviewSystem Component Not Found
+MissingPreviewChara												=	PreviewChara Object Not Found
+
